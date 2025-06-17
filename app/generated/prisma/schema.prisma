@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  name         String  @db.VarChar(255)
+  email        String  @unique @db.VarChar(255)
+  phone_number String  @db.VarChar(15)
+  gender       String? @db.VarChar(20)
+  password     String  @db.Text
+  image_path   String? @db.Text
+
+  finances   Finance[]
+  toDos      ToDo[]
+  categories Category[]
+
+  @@map("users")
+}
+
+model Finance {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.Text
+  amount      Int
+  date        DateTime
+  created_at  DateTime @default(now())
+  user_id     Int
+  category_id Int
+
+  user     User     @relation(fields: [user_id], references: [id])
+  category Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@map("finances")
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  type        String  @db.VarChar(15)
+  icon_family String  @db.VarChar(100)
+  icon_name   String  @db.VarChar(100)
+  icon_color  String? @default("#9ACBD0") @db.VarChar(100)
+  user_id     Int
+
+  finances Finance[]
+  user     User      @relation(fields: [user_id], references: [id])
+
+  @@unique([name, type, user_id])
+  @@map("categories")
+}
+
+model ToDo {
+  id            Int       @id @default(autoincrement())
+  name          String    @db.Text
+  is_important  Boolean   @default(false)
+  is_done       Boolean   @default(false)
+  done_time     DateTime?
+  due_date      DateTime
+  is_remindered Boolean   @default(false)
+  created_at    DateTime  @default(now())
+  user_id       Int
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("todos")
+}
+
+model Feedback {
+  id         Int      @id @default(autoincrement())
+  feedback   String   @db.Text
+  created_at DateTime @default(now())
+}
