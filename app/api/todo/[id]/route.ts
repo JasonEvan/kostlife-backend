@@ -219,3 +219,49 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  let todoId;
+  try {
+    todoId = Number((await params).id);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (err) {
+    todoId = NaN;
+  }
+
+  if (isNaN(todoId)) {
+    return NextResponse.json(
+      {
+        errors: "ID must be a number",
+      },
+      { status: 400 }
+    );
+  }
+
+  const prisma = PrismaService.getInstance();
+  try {
+    await prisma.toDo.delete({
+      where: {
+        id: todoId,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        data: true,
+      },
+      { status: 200 }
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (err) {
+    return NextResponse.json(
+      {
+        errors: `Cannot delete data with id ${todoId}`,
+      },
+      { status: 500 }
+    );
+  }
+}
